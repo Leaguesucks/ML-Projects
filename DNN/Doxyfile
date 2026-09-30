@@ -1,0 +1,18 @@
+PROJECT_NAME           = "Neural Network From Scratch in C++"
+PROJECT_BRIEF          = "A feed-forward neural network for MNIST"
+OUTPUT_DIRECTORY       = docs
+
+INPUT                  = README.md include src
+USE_MDFILE_AS_MAINPAGE = README.md
+FILE_PATTERNS          = *.h *.hpp *.cpp
+RECURSIVE              = YES
+
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+WARN_IF_UNDOCUMENTED   = NO
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+GENERATE_LATEX         = NO
+GENERATE_TREEVIEW      = YES
+QUIET                  = YES

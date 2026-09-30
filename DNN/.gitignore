@@ -1,0 +1,16 @@
+# Build output
+/build/
+/bin/
+*.o
+*.d
+/.out/
+
+# Local Python environment and caches
+/.venv/
+__pycache__/
+*.py[cod]
+
+# Generated documentation and plots
+/docs/api/
+/mnist_results/*.png
+/training/*.png
