@@ -38,23 +38,31 @@ class SquareMatrix {
     protected:
         Dimension dimension;
 
+        std::size_t max_threads;
         std::size_t side;
         std::vector<double> data;
 
     public:
         /**
-         * @brief Construct a square matrix filled with the default value
-         * @param size Construct a size x size matrix
-         * @param value The default value of the matrix
+         * @brief Dummy default constructor
          */
-        SquareMatrix(std::size_t size, double value=0.0);
+        SquareMatrix() {max_threads = MAX_THREADS;}
+
+        /**
+         * @brief Construct a square matrix filled with the default value
+         * @param side Construct a side x side matrix
+         * @param value The default value of the matrix
+         * @param max_threads Max number of threads to handle operations
+         */
+        SquareMatrix(std::size_t side, double value=0.0, std::size_t max_threads=MAX_THREADS);
 
         /**
          * @brief Construct a square matrix from an existed data
-         * @param size Construct a size x size matrix
+         * @param side Construct a side x side matrix
          * @param data The data to initialize the matrix
+         * @param max_threads Max number of threads to handle operations
          */
-        SquareMatrix(std::size_t size, const std::vector<double>& data);
+        SquareMatrix(std::size_t side, const std::vector<double>& data, std::size_t max_threads=MAX_THREADS);
 
         /**
          * @brief Convolute this matrix using a kernel
@@ -76,8 +84,24 @@ class SquareMatrix {
          * @param type The type of pooling: MAX_POOLING | AVERAGE_POOLING
          */
         virtual void pool(const std::vector<std::size_t>& dim_p, int stride=2, PoolingType type=MAX_POOLING) = 0;
+
+        /**
+         * @brief Applied another set of data to this network
+         * @param side Construct a side x side matrix
+         * @param data Another set of data to construct
+         */
+        virtual void set_data(std::size_t side, const std::vector<double>& data) = 0;
         
         Dimension get_dimension() {return dimension;}
-        std::size_t get_size() {return side;}
+        
+        void set_max_threads(std::size_t max_threads) {
+            if (max_threads <= 0)
+                throw std::invalid_argument("There must be at least 1 thread");
+            this->max_threads = max_threads;
+        }
+
+        std::size_t get_max_threads() {return max_threads;}
+        
+        std::size_t get_side() {return side;}
         std::vector<double>& get_data() {return data;}
 };
