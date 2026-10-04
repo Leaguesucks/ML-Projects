@@ -29,53 +29,29 @@ void SquareMatrix2D::conv(const std::vector<std::vector<double>>& kernel, std::s
 
     const std::size_t output_side = (side - kernel.size() + 2 * k_middle) / stride + 1;
     const std::size_t num_pixels = output_side * output_side;
-    const std::size_t num_threads = std::min<std::size_t>(num_pixels, max_threads);
-    const std::size_t pixels_per_thread = num_pixels / num_threads;
-    const std::size_t extras = num_pixels % num_threads;
+    std::vector<double> new_data(num_pixels, 0.0);
 
-    std::vector<double> new_data(output_side * output_side, 0.0);
-    auto thread_conv = [this, k_middle, stride, output_side, &kernel, &new_data](std::size_t start_pixel, std::size_t end_pixel) {
-        for (std::size_t pixel = start_pixel; pixel < end_pixel; ++pixel) {
-            const std::size_t out_row = pixel / output_side;
-            const std::size_t out_col = pixel % output_side;
-            const int cur_row = static_cast<int>(out_row * stride);
-            const int cur_col = static_cast<int>(out_col * stride);
+    #pragma omp parallel for num_threads(max_threads) schedule(static)
+    for (std::ptrdiff_t pixel = 0; pixel < static_cast<std::ptrdiff_t>(num_pixels); ++pixel) {
+        const std::size_t out_row = static_cast<std::size_t>(pixel) / output_side;
+        const std::size_t out_col = static_cast<std::size_t>(pixel) % output_side;
+        const int cur_row = static_cast<int>(out_row * stride);
+        const int cur_col = static_cast<int>(out_col * stride);
 
-            double sum = 0.0;
-            for (int row = cur_row - static_cast<int>(k_middle);
-                 row <= cur_row + static_cast<int>(k_middle);
-                 row++)
-                for (int col = cur_col - static_cast<int>(k_middle);
-                     col <= cur_col + static_cast<int>(k_middle);
-                     col++) {
-                        
-                    if (row < 0 || row >= static_cast<int>(side) || col < 0 || col >= static_cast<int>(side))
-                        continue;
+        double sum = 0.0;
+        for (int row = cur_row - static_cast<int>(k_middle); row <= cur_row + static_cast<int>(k_middle); ++row)
+            for (int col = cur_col - static_cast<int>(k_middle); col <= cur_col + static_cast<int>(k_middle); ++col) {
+                if (row < 0 || row >= static_cast<int>(side) || col < 0 || col >= static_cast<int>(side))
+                    continue;
+                
+                const std::size_t kernel_row = static_cast<std::size_t>(row - cur_row + static_cast<int>(k_middle));
+                const std::size_t kernel_col = static_cast<std::size_t>(col - cur_col + static_cast<int>(k_middle));
 
-                    const std::size_t kernel_row = static_cast<std::size_t>(row - cur_row + static_cast<int>(k_middle));
-                    const std::size_t kernel_col = static_cast<std::size_t>(col - cur_col + static_cast<int>(k_middle));
+                sum += data[static_cast<std::size_t>(row) * side + static_cast<std::size_t>(col)] * kernel[kernel_row][kernel_col];
+            }
 
-                    sum += data[static_cast<std::size_t>(row) * side + static_cast<std::size_t>(col)] * kernel[kernel_row][kernel_col];
-                }
-            
-            new_data[pixel] = sum;
-        }
-    };
-
-    std::vector<std::thread> threads;
-    threads.reserve(num_threads);
-
-    std::size_t start = 0;
-    for (std::size_t i = 0; i < num_threads; i++) {
-        const std::size_t count = pixels_per_thread + (i < extras ? 1 : 0); // Apply more pixels to the first thread
-        const std::size_t end = start + count;
-
-        threads.emplace_back(thread_conv, start, end);
-        start = end;
+        new_data[static_cast<std::size_t>(pixel)] = sum;
     }
-
-    for (auto& thread : threads)
-        thread.join();
 
     data = std::move(new_data);
     side = output_side;
