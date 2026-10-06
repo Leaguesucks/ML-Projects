@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <cstddef>
 #include <vector>
 
@@ -11,14 +12,7 @@ enum PoolingType {
 
 enum ConvolutionLayerType {
     CONV,
-    ACTIVATE,
     POOL,
-    DENSE
-};
-
-enum PaddingType {
-    ZERO_PADD,
-    SAME_PADD
 };
 
 /**
@@ -41,11 +35,11 @@ enum PaddingType {
 class Layer {
     protected:
         ConvolutionLayerType layer_type;
-        PaddingType padd_type;
         std::size_t stride, padding;
         std::size_t in_channels, out_channels;
         std::size_t in_data_side, out_data_side;
-        std::vector<double> *in_data, out_data; 
+        std::vector<double> in_data; // in_data_side x in_data_side x in_channels
+        std::vector<double> out_data; // out_data_side x out_data_side x out_channels
 
     public:
         /**
@@ -56,14 +50,21 @@ class Layer {
          * @param padd_type The padding type
          */
         Layer(std::size_t in_channels=1, std::size_t stride=1, 
-              std::size_t padding=1, PaddingType padd_type=ZERO_PADD);
+              std::size_t padding=1);
 
         /**
          * @brief Forward the data through this layer
+         * @param side The side of the data
+         * @param data The data to feed through this layer as a flat vector
          */
+        virtual void forward(std::size_t side, const std::vector<double>& data) = 0;
 
-        ConvolutionLayerType get_layer() {return layer_type;}
-        std::size_t get_out_channels_num() {return out_channels;}
-        std::size_t get_out_data_side() { return out_data_side;}
+        ConvolutionLayerType get_layer_type() {return layer_type;}
+        std::size_t get_in_channels() {return in_channels;}
+        std::size_t get_in_data_side() {return in_data_side;}
+        std::size_t get_out_channels() {return out_channels;}
+        std::size_t get_out_data_side() {return out_data_side;}
+        std::vector<double>& get_out_data() {return out_data;}
+
 };
 }
