@@ -8,13 +8,15 @@
 #include <iostream>
 #include <stdexcept>
 
-double calculate_loss(Network& network, std::vector<double>& X,std::vector<double>& Y) {
+namespace dnn {
+
+double calculate_loss(dnn::Network& network, std::vector<double>& X,std::vector<double>& Y) {
     network.forward_propagation(X);
     std::vector<double> prediction = network.get_Y_HAT();
 
     double total_loss = 0.0;
     for (size_t i = 0; i < Y.size(); ++i)
-        total_loss += network.loss(Y[i], prediction[i], CATEGORICAL_CROSS_ENTROPY);
+        total_loss += network.loss(Y[i], prediction[i], dnn::CATEGORICAL_CROSS_ENTROPY);
 
     return total_loss;
 }
@@ -53,7 +55,7 @@ void test_gradient_check(size_t input_size,
     // Create hidden layers
     // ============================================================
 
-    std::vector<Layer> layers;
+    std::vector<dnn::Layer> layers;
     size_t previous_size = input_size;
     for (size_t layer_index = 0; layer_index < hidden_sizes.size(); ++layer_index) {
         size_t current_size = hidden_sizes[layer_index];
@@ -78,7 +80,7 @@ void test_gradient_check(size_t input_size,
             }
         }
 
-        layers.emplace_back(weights, RELU);
+        layers.emplace_back(weights, dnn::RELU);
         previous_size = current_size;
     }
 
@@ -102,13 +104,13 @@ void test_gradient_check(size_t input_size,
         }
     }
 
-    layers.emplace_back(weights, SOFTMAX);
+    layers.emplace_back(weights, dnn::SOFTMAX);
 
     // ============================================================
     // Create network
     // ============================================================
 
-    Network network(layers, CATEGORICAL_CROSS_ENTROPY);
+    dnn::Network network(layers, dnn::CATEGORICAL_CROSS_ENTROPY);
 
     // ============================================================
     // Deterministic input
@@ -161,7 +163,7 @@ void test_gradient_check(size_t input_size,
     // Original loss
     // ============================================================
 
-    double original_loss = calculate_loss(network, X, Y);
+    double original_loss = dnn::calculate_loss(network, X, Y);
     if (!std::isfinite(original_loss))
         throw std::runtime_error("Initial loss is not finite");
 
@@ -195,7 +197,7 @@ void test_gradient_check(size_t input_size,
     // ============================================================
 
     for (size_t L = 0; L < network.get_layers().size(); ++L) {
-        Layer& current_layer = network.get_layers()[L];
+        dnn::Layer& current_layer = network.get_layers()[L];
         auto& current_weights = current_layer.get_weights();
         auto& current_grads = current_layer.get_gradients();
         int n_neurons = current_layer.get_n_neurons();
@@ -225,12 +227,12 @@ void test_gradient_check(size_t input_size,
                 // L(w + epsilon)
                 current_weights[J * n_inputs + I] = original_weight + epsilon;
 
-                double loss_plus = calculate_loss(network, X, Y);
+                double loss_plus = dnn::calculate_loss(network, X, Y);
 
                 // L(w - epsilon)
                 current_weights[J * n_inputs + I] = original_weight - epsilon;
 
-                double loss_minus = calculate_loss(network, X, Y);
+                double loss_minus = dnn::calculate_loss(network, X, Y);
 
                 // Restore original weight
                 current_weights[J * n_inputs + I] = original_weight;
@@ -343,3 +345,5 @@ void test_gradient_check(size_t input_size,
     else
         std::cout << "\nFAIL: " << "Some weight gradients do not match.\n";
 }
+
+} // namespace dnn

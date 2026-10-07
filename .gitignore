@@ -49,6 +49,8 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+!/CNN/Makefile
+!/DNN/Makefile
 install_manifest.txt
 compile_commands.json
 

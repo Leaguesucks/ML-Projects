@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <utility>
 
+namespace dnn {
+
 uint32_t MNIST::read_uint32(std::ifstream& file) {
     uint8_t bytes[4];
 
@@ -88,3 +90,5 @@ void MNIST::save_image(const MNIST_Image& image, const std::string& filename) {
         file << '\n';
     }
 }
+
+} // namespace dnn

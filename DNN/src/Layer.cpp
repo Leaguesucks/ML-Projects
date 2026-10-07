@@ -5,6 +5,8 @@
 #include <random>
 #include <stdexcept>
 
+namespace dnn {
+
 Layer::Layer(int n_neurons, int n_inputs, Activation_Type activation_type, bool random) : 
 activation_type(activation_type), gradients(n_neurons * n_inputs, 0.0),
 mts(n_neurons * n_inputs, 0.0), vts(n_neurons * n_inputs, 0.0),
@@ -221,3 +223,5 @@ int Layer::get_n_neurons() {
 int Layer::get_n_inputs() {
     return n_inputs;
 }
+
+} // namespace dnn

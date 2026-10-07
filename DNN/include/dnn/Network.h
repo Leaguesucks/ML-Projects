@@ -7,6 +7,8 @@
 
 #include <dnn/Layer.h>
 
+namespace dnn {
+
 /** @brief Loss functions supported by Network. */
 enum Loss_Type {
     BINARY_CROSS_ENTROPY,
@@ -188,3 +190,5 @@ class Network {
          */
         double d_sse(double y, double y_hat);
 };
+
+} // namespace dnn

@@ -5,6 +5,8 @@
 #include <vector>
 #include <cstdint>
 
+namespace dnn {
+
 /**
  * @brief A 28 by 28 MNIST image and its digit label.
  *
@@ -51,3 +53,5 @@ class MNIST {
          */
         uint32_t read_uint32(std::ifstream& file);
 };
+
+} // namespace dnn

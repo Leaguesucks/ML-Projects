@@ -16,8 +16,10 @@ namespace {
     constexpr char SAVED_FILE[] = "training/mnist_train.bin";
 }
 
-void train(std::vector<MNIST_Image>& training_data, const std::vector<MNIST_Image>& test_data, 
-    Network& network, Adam& optimizer, std::mt19937& rng) {
+namespace dnn {
+
+void train(std::vector<dnn::MNIST_Image>& training_data, const std::vector<dnn::MNIST_Image>& test_data,
+    dnn::Network& network, dnn::Adam& optimizer, std::mt19937& rng) {
     std::vector<double> Y(N_OUTPUTS, 0.0);
 
     std::cout << "Start training..." << "\n\n";
@@ -76,11 +78,13 @@ void train(std::vector<MNIST_Image>& training_data, const std::vector<MNIST_Imag
     }
 }
 
+} // namespace dnn
+
 int main() {
     std::random_device rd;
     std::mt19937 g(rd());
 
-    MNIST mnist, mnist_test;
+    dnn::MNIST mnist, mnist_test;
 
     mnist.load(
         "mnist/train-images.idx3-ubyte",
@@ -92,12 +96,12 @@ int main() {
         "mnist/t10k-labels.idx1-ubyte"
     );
 
-    Network network(SAVED_FILE);
+    dnn::Network network(SAVED_FILE);
     network.set_accumulate_gradients(true);
 
-    Adam optimizer(network);
+    dnn::Adam optimizer(network);
 
-    train(mnist.get_data(), mnist_test.get_data(), network, optimizer, g);
+    dnn::train(mnist.get_data(), mnist_test.get_data(), network, optimizer, g);
     
     return 0;
 }

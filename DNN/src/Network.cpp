@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <utility>
 
+namespace dnn {
+
 Network::Network(int n_inputs, const std::vector<Layer_Architecture>& architectures, Loss_Type loss_type) 
 : loss_type(loss_type) {
     if (architectures.empty())
@@ -325,3 +327,5 @@ void Network::set_accumulate_gradients(bool accumulate) {
 size_t& Network::get_time_step() {
     return t;
 }
+
+} // namespace dnn

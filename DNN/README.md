@@ -4,6 +4,11 @@
 
 A feed-forward neural network implemented **from scratch in C++**, trained on the **MNIST handwritten digit dataset**.
 
+The reusable library is exposed as the CMake target `dnn::dnn`. Public headers
+live under `include/dnn/`, implementations under `src/`, and classes, enums,
+and functions belong to the `dnn` namespace. The sibling CNN project links to
+this library directly instead of maintaining copied sources.
+
 The goal of this project is not simply to achieve high classification accuracy, but to understand how neural networks work internally by implementing the major components without relying on machine-learning frameworks.
 
 The project currently supports:
@@ -394,7 +399,6 @@ The source tree is organized as follows:
 ├── CMakeLists.txt
 ├── Doxyfile
 ├── Makefile
-├── dnn/                   # Standalone copy of the reusable C++ code
 ├── include/dnn/
 │   ├── Adam.h
 │   ├── Layer.h
@@ -422,7 +426,8 @@ The source tree is organized as follows:
 
 ## Building and Running
 
-The C++ program requires a compiler with **C++17** support. Build it with Make:
+The C++ program requires a compiler with **C++17** support. From `DNN/`, build
+it with Make:
 
 ```bash
 make
@@ -437,7 +442,9 @@ cmake --build build
 ./build/bin/main.exe
 ```
 
-Run these commands from the repository root. The executable reads the MNIST files under `mnist/` and the saved network at `training/mnist_train.bin` using relative paths, then starts training.
+Run these commands from `DNN/`. The executable reads the MNIST files under
+`mnist/` and the saved network at `training/mnist_train.bin` using relative
+paths, then starts training.
 
 The CMake tests run numerical gradient checking and a saved-model smoke check. After building, run:
 
@@ -445,27 +452,77 @@ The CMake tests run numerical gradient checking and a saved-model smoke check. A
 ctest --test-dir build --output-on-failure
 ```
 
+To build DNN and CNN together, run the following from the repository root:
+
+```bash
+cmake -S . -B build
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+For that build, run the MNIST executable from `DNN/` as
+`../build/bin/main.exe` so its data paths resolve.
+
 ### Using the library in another project
 
-The root `dnn/` directory contains only the four library headers and their
-four `.cpp` implementations. Copy that directory into another project's
-`include/` directory. With `-Iinclude`, include headers as:
+Add the existing DNN project as a subdirectory and link its reusable target:
+
+```cmake
+add_subdirectory(path/to/ML-Projects/DNN dnn-build)
+add_executable(your_app app.cpp)
+target_link_libraries(your_app PRIVATE dnn::dnn)
+```
+
+The target supplies the public include path and C++17 requirement. Include
+headers with their package path and qualify API names explicitly:
 
 ```cpp
 #include <dnn/Network.h>
+
+dnn::Network network(
+    784,
+    {{128, dnn::RELU}, {64, dnn::RELU}, {10, dnn::SOFTMAX}},
+    dnn::CATEGORICAL_CROSS_ENTROPY
+);
 ```
 
-Compile the copied `.cpp` files alongside your program; copying the headers
-alone will leave the implementations undefined at link time. For example:
+Other public types include `dnn::Layer`, `dnn::Adam`, `dnn::MNIST`,
+`dnn::Layer_Architecture`, `dnn::Activation_Type`, and `dnn::Loss_Type`.
+
+Linking `dnn::dnn` compiles the implementation once from `DNN/src/`; consumers
+do not copy headers or implementation files. Changes to DNN are picked up by
+normal CMake rebuilds. To build just the library, use
+`cmake --build build --target dnn`. Set `-DBUILD_TESTING=OFF` when configuring
+to omit the test targets.
+
+### Moving or adding files
+
+Header include paths are relative to `DNN/include/`. For example, moving
+`include/dnn/Network.h` to `include/dnn/network/Network.h` requires replacing
+`#include <dnn/Network.h>` with `#include <dnn/network/Network.h>` everywhere
+it is referenced, including in CNN. Keep the include root at `include/` and
+the namespace as `dnn`; subfolders do not change the namespace.
+
+CMake and the native Makefile recursively discover `.cpp` files under `src/`.
+Moving `src/Network.cpp` to `src/network/Network.cpp`, or adding a new library
+implementation there, requires a rebuild without editing a source list. The
+directory is spelled `src`, not `scr`. Keep the entrypoint at `src/main.cpp`;
+moving it requires changing both `add_executable(main ...)` and the library
+source exclusion in `CMakeLists.txt`. Test sources are listed explicitly in
+their `add_executable` calls, so update those lists after a test move and use
+`add_test` to register a new test.
+
+After moves, refresh CMake and the compilation database used by VS Code:
 
 ```bash
-g++ -std=c++17 -Iinclude src/main.cpp include/dnn/Adam.cpp \
-    include/dnn/Layer.cpp include/dnn/MNIST.cpp include/dnn/Network.cpp -o app
+cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
 ```
 
-The `include/` directory is the search root, so it is omitted from the
-`#include` spelling. The `dnn/` package does not contain the MNIST data,
-saved model, executable entry point, or tests.
+Run those commands from `DNN/`, or from the repository root to rebuild both
+libraries. [CNN's file-move guide](../CNN/README.md#moving-or-adding-files)
+includes examples for its nested `.hpp` headers as well.
 
 ### API Documentation
 
@@ -493,7 +550,7 @@ python3 -m pip install numpy pillow
 
 On Debian or Ubuntu, `bash setup.sh` installs the compiler and Python prerequisites and creates a virtual environment with NumPy and Pillow.
 
-Run the display script from the repository root so its relative data paths resolve.
+Run the display script from `DNN/` so its relative data paths resolve.
 
 ```bash
 python3 MNIST_Display.py MANUAL

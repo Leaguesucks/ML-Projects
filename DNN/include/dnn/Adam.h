@@ -5,6 +5,8 @@
 
 #include <dnn/Network.h>
 
+namespace dnn {
+
 /**
  * @brief Applies Adam updates to the weights and biases of a Network.
  *
@@ -53,3 +55,5 @@ class Adam {
          */
         void update_weights(size_t batch_size);
 };
+
+} // namespace dnn

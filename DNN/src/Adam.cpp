@@ -4,6 +4,8 @@
 #include <cmath>
 #include <stdexcept>
 
+namespace dnn {
+
 Adam::Adam(Network& network,
            double a,
            double B1, double B2,
@@ -101,3 +103,5 @@ void Adam::update_weights(size_t batch_size) {
         }
     }
 }
+
+} // namespace dnn

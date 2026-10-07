@@ -7,14 +7,14 @@
 #include <iterator>
 
 int main() {
-    MNIST mnist;
+    dnn::MNIST mnist;
     mnist.load("mnist/t10k-images.idx3-ubyte", "mnist/t10k-labels.idx1-ubyte");
     if (mnist.get_data().size() != 10000) {
         std::cerr << "MNIST test image count differs from the pre-refactor baseline\n";
         return 1;
     }
 
-    Network network("training/mnist_train.bin");
+    dnn::Network network("training/mnist_train.bin");
     network.forward_propagation(mnist.get_data().front().pixels);
     const auto& prediction = network.get_Y_HAT();
     const auto predicted_label = std::distance(

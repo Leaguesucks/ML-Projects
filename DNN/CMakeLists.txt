@@ -2,15 +2,17 @@ cmake_minimum_required(VERSION 3.16)
 
 project(DNN LANGUAGES CXX)
 
-add_library(dnn
-    src/Adam.cpp
-    src/Layer.cpp
-    src/MNIST.cpp
-    src/Network.cpp
-)
+file(GLOB_RECURSE DNN_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+list(REMOVE_ITEM DNN_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
+
+add_library(dnn ${DNN_SOURCES})
+add_library(dnn::dnn ALIAS dnn)
 
 target_compile_features(dnn PUBLIC cxx_std_17)
-target_include_directories(dnn PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(dnn PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PRIVATE dnn)

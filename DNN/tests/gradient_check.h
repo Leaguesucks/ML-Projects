@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <vector>
 
+namespace dnn {
+
 class Network;
 
 double calculate_loss(
@@ -16,3 +18,5 @@ void test_gradient_check(
     const std::vector<size_t>& hidden_sizes,
     size_t output_size
 );
+
+} // namespace dnn

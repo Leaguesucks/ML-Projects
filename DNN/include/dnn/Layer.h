@@ -2,6 +2,8 @@
 
 #include <vector>
 
+namespace dnn {
+
 /**
  * @brief Activation functions supported by a layer.
  */
@@ -155,3 +157,5 @@ class Layer {
          */
         double normal_Xavier_Deviation(int n_inputs, int n_neurons);
 };
+
+} // namespace dnn
