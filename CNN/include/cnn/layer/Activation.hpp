@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <stdexcept>
+#include <cmath>
 
 #include <dnn/Layer.h>
 #include <cnn/layer/Layer.hpp>
@@ -13,7 +14,6 @@ class ActivationLayer : Layer {
 
     public:
         ActivationLayer(std::size_t in_out_channels=1,
-              const std::string& name=utils::random_str(),
               dnn::Activation_Type activation_type=dnn::RELU,
               std::size_t in_out_data_side);
 

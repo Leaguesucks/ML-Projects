@@ -24,7 +24,6 @@ class ConvolutionLayer : public cnn::OperationLayer {
 
     public:
         ConvolutionLayer(std::size_t in_channels=1, std::size_t out_channels=1,
-              const std::string& name=utils::random_str(),
               std::size_t stride=1, std::size_t padding=0, std::size_t in_data_side, 
               const std::vector<double>& kernels, const std::vector<double>& biases);
 

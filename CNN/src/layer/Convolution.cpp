@@ -2,10 +2,9 @@
 
 namespace cnn {
 ConvolutionLayer::ConvolutionLayer(std::size_t in_channels=1, std::size_t out_channels=1,
-              const std::string& name=utils::random_str(),
               std::size_t stride=1, std::size_t padding=0, std::size_t in_data_side,
               const std::vector<double>& kernels, const std::vector<double>& biases)
-: cnn::OperationLayer(in_channels, out_channels, name, 
+: cnn::OperationLayer(in_channels, out_channels, 
     stride, padding, in_data_side, (in_data_side - kernel_side + 2 * padding) / stride + 1),
   num_filters(out_channels),
   kernel_side(kernel_side), kernels(kernels), biases(biases) {

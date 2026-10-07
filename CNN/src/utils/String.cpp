@@ -1,11 +1,13 @@
 #include <cnn/utils/String.hpp>
 
 namespace utils {
-std::string random_str(std::size_t length=0, const std::string& char_set="") {
+std::string random_str(std::size_t length=25, const std::string& char_set="") {
     std::size_t len;
     std::string ch_set;
 
-    len = (length == 0) ? 25 : length;
+    if (len <= 0)
+        throw std::invalid_argument("Length cannot be zero");
+
     if (char_set.empty())
         ch_set = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_+=";
     else 

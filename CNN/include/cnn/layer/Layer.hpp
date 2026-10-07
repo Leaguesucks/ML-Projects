@@ -27,7 +27,6 @@ enum ConvolutionLayerType {
 class Layer {
     protected:
         ConvolutionLayerType layer_type;
-        std::string name;
 
         std::size_t in_channels, out_channels;
         std::size_t in_data_side, out_data_side;
@@ -39,12 +38,10 @@ class Layer {
          * @brief Default constructor
          * @param in_channels The number of input channels
          * @param out_channels The number of output channels
-         * @param name Name of the layer. If not specified will be randomized
          * @param in_data_side The size = side x side of the input data
          * @param out_data_side The size = side x side of the output data
          */
         Layer(std::size_t in_channels=1, std::size_t out_channels=1,
-              const std::string& name=utils::random_str(),
               std::size_t in_data_side, std::size_t out_data_side);
 
         /**
@@ -58,10 +55,9 @@ class Layer {
         std::size_t get_in_data_side() {return in_data_side;}
         std::size_t get_out_channels() {return out_channels;}
         std::size_t get_out_data_side() {return out_data_side;}
-        std::vector<double>& get_out_data() {return out_data;}
 
-        void set_name(const std::string& name) {this->name = name;}
-        std::string& get_name() {return name;}
+        std::vector<double>& get_in_data() {return in_data;}
+        std::vector<double>& get_out_data() {return out_data;}
 };
 
 /**
@@ -93,7 +89,6 @@ class OperationLayer : public Layer {
          * @param padd_type The padding type
          */
         OperationLayer(std::size_t in_channels=1, std::size_t out_channels=1,
-              const std::string& name=utils::random_str(),
               std::size_t stride=1, std::size_t padding=0,
               std::size_t in_data_side, std::size_t out_data_side);
 

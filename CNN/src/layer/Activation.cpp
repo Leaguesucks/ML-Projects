@@ -2,10 +2,9 @@
 
 namespace cnn {
 ActivationLayer::ActivationLayer(std::size_t in_out_channels=1,
-              const std::string& name=utils::random_str(),
               dnn::Activation_Type activation_type=dnn::RELU,
               std::size_t in_out_data_side)
-: cnn::Layer(in_out_channels, in_out_channels, name, in_out_data_side, in_out_data_side),
+: cnn::Layer(in_out_channels, in_out_channels, in_out_data_side, in_out_data_side),
   activation_type(activation_type) {
     layer_type = cnn::ACTV;
 }
@@ -18,8 +17,9 @@ void ActivationLayer::forward(const std::vector<double>& data) {
 
     switch (activation_type) {
         case dnn::RELU:
+            #pragma omp for schedule(static)
             for (std::size_t i; i < data.size(); ++i)
-                out_data
+                out_data[i] = std::max(0.0, in_data[i]);
     }
 }
 }

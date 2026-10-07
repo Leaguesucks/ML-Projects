@@ -2,12 +2,11 @@
 
 namespace cnn {
 PoolLayer::PoolLayer(std::size_t in_out_channels=1,
-            const std::string& name=utils::random_str(),
             std::size_t stride=1, std::size_t padding=0,
             std::size_t window_side=2, cnn::PoolingType pooling_type=cnn::MAX_POOLING,
             std::size_t in_data_side)
 : cnn::OperationLayer(in_out_channels, in_out_channels, 
-    name, stride, padding, in_data_side, (in_data_side - window_side + 2 * padding) / stride + 1), 
+    stride, padding, in_data_side, (in_data_side - window_side + 2 * padding) / stride + 1), 
 window_side(window_side), pooling_type(pooling_type) {
     if (window_side <= 0)
         throw std::invalid_argument("The window slide cannot be zero");
