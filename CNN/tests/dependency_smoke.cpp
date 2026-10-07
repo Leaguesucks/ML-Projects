@@ -23,7 +23,7 @@ cnn::ConvolutionLayer dense_layer() {
 }
 
 dnn::Network dense_network(const std::vector<double>& weights) {
-    return dnn::Network({dnn::Layer(1, weights, dnn::RELU)}, dnn::SSE);
+    return dnn::Network({dnn::OperationLayer(1, weights, dnn::RELU)}, dnn::SSE);
 }
 
 // Expose individual operations for the original matrix regression values.

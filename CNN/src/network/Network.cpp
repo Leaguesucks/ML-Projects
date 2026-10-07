@@ -2,7 +2,7 @@
 
 namespace cnn {
 
-Network::Network(const std::vector<cnn::Layer>& conv_layers, const dnn::Network& densed_layer)
+Network::Network(const std::vector<cnn::OperationLayer>& conv_layers, const dnn::Network& densed_layer)
 : conv_layers(conv_layers), densed_layer(densed_layer) {
     if (conv_layers.empty())
         throw std::invalid_argument("The convolution layers cannot be empty");

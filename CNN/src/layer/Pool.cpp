@@ -1,28 +1,25 @@
 #include <cnn/layer/Pool.hpp>
 
 namespace cnn {
-PoolLayer::PoolLayer(std::size_t in_channels=1, std::size_t stride=2, 
-                     std::size_t padding=0,
-                     std::size_t window_side=2, PoolingType pooling_type=cnn::MAX_POOLING)
-: cnn::Layer(in_channels, stride, padding), window_side(window_side),
-  pooling_type(pooling_type) {
+PoolLayer::PoolLayer(std::size_t in_out_channels=1,
+            const std::string& name=utils::random_str(),
+            std::size_t stride=1, std::size_t padding=0,
+            std::size_t window_side=2, cnn::PoolingType pooling_type=cnn::MAX_POOLING,
+            std::size_t in_data_side)
+: cnn::OperationLayer(in_out_channels, in_out_channels, 
+    name, stride, padding, in_data_side, (in_data_side - window_side + 2 * padding) / stride + 1), 
+window_side(window_side), pooling_type(pooling_type) {
     if (window_side <= 0)
         throw std::invalid_argument("The window slide cannot be zero");
-
-    out_channels = in_channels;
+    layer_type = cnn::POOL;
 }
 
-void PoolLayer::forward(std::size_t side, const std::vector<double>& data) {
-    if (side <= 0)
-        throw std::invalid_argument("The data side cannot be zero");
-    if (side * side * in_channels != data.size())
-        throw std::invalid_argument("Data size mismatch");
-    
-    in_data_side = side;
-    in_data = data;
+void PoolLayer::forward(const std::vector<double>& data) {
+    if (in_data_side * in_data_side * in_channels != data.size())
+        throw std::invalid_argument("Mismatch data size");
 
-    out_data_side = (side - window_side + 2 * padding) / stride + 1;
-    out_data.assign(out_data_side * out_data_side * out_channels, 0.0);
+    in_data = data;
+    std::fill(out_data.begin(), out_data.end(), 0.0);
 
     pool();
 }

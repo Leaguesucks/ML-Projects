@@ -18,7 +18,7 @@ namespace cnn {
  */
 class Network {
     private:
-        std::vector<cnn::Layer> conv_layers;
+        std::vector<cnn::OperationLayer> conv_layers;
         std::vector<double> inputs, outputs;
         dnn::Network densed_layer;
 
@@ -28,7 +28,7 @@ class Network {
          * @param conv_layers Array of convolutions layers to connect e.g., inputs -> conv_layers[0] -> con_layers[1] -> ... -> densed_layer -> output
          * @param densed_layer Dense neural network for this CNN, usually is the one produces the final output
          */
-        Network(const std::vector<cnn::Layer>& conv_layers, const dnn::Network& densed_layer);
+        Network(const std::vector<cnn::OperationLayer>& conv_layers, const dnn::Network& densed_layer);
 
 };
 

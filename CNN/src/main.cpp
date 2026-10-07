@@ -5,7 +5,7 @@
 
 int main() {
     dnn::Network densed_network(
-        std::vector<dnn::Layer>{dnn::Layer(1, std::vector<double>(4, 1.0), dnn::RELU)},
+        std::vector<dnn::OperationLayer>{dnn::OperationLayer(1, std::vector<double>(4, 1.0), dnn::RELU)},
         dnn::SSE
     );
 
