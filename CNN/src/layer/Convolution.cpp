@@ -2,11 +2,13 @@
 
 namespace cnn {
 ConvolutionLayer::ConvolutionLayer(std::size_t in_channels=1, std::size_t out_channels=1,
-              std::size_t stride=1, std::size_t padding=0, std::size_t in_data_side,
+              std::size_t stride=1, std::size_t padding=0, 
+              bool activate=true, dnn::Activation_Type activation_type=dnn::RELU,
+              std::size_t in_data_side,
               const std::vector<double>& kernels, const std::vector<double>& biases)
 : cnn::OperationLayer(in_channels, out_channels, 
     stride, padding, in_data_side, (in_data_side - kernel_side + 2 * padding) / stride + 1),
-  num_filters(out_channels),
+  num_filters(out_channels), activate(activate), activation_type(activation_type),
   kernel_side(kernel_side), kernels(kernels), biases(biases) {
     if (num_filters <= 0)
         throw std::invalid_argument("There must be at least one filter");
@@ -18,6 +20,8 @@ ConvolutionLayer::ConvolutionLayer(std::size_t in_channels=1, std::size_t out_ch
         throw std::invalid_argument("Mismatch biases size");
 
     layer_type = cnn::CONV;
+
+    zs.resize(out_data_side * out_data_side * out_channels, 0.0);
 }
 
 void ConvolutionLayer::forward(const std::vector<double>& data) {
@@ -60,7 +64,7 @@ void ConvolutionLayer::convolution() {
                     if (row < 0 || row >= static_cast<int>(in_data_side) || col < 0 || col >= static_cast<int>(in_data_side))
                         continue;
 
-                    for (std::size_t in_ch = 0; in_ch < in_channels; ++in_ch)
+                    for (std::size_t in_ch = 0; in_ch < in_channels; ++in_ch) {
                         out_data[
                             (out_row * out_data_side + out_col) * out_channels + f
                         ] +=
@@ -78,11 +82,25 @@ void ConvolutionLayer::convolution() {
                             * in_channels
                             + in_ch
                         ];
+
+                        zs[pixel * out_channels + f] = out_data[pixel * out_channels + f];
+                    }
                 }
+
+            if (!activate)
+                continue;
+
+            switch (activation_type) {
+                case dnn::RELU:
+                    out_data[pixel * out_channels + f] = std::max(0.0, out_data[pixel * out_channels + f]);
+                    break;
+
+                default:
+                    throw std::runtime_error("Unsupported activation type");
+            }
         }
 
     }    
 }
-
 
 }

@@ -50,6 +50,12 @@ class Layer {
          */
         virtual void forward(const std::vector<double>& data) = 0;
 
+        /**
+         * @brief Perform back-propagation
+         * @param d_output The derivative of the output in the previous layer with respect to the loss function
+         */
+        virtual const std::vector<double>& backward(const std::vector<double>& d_output) = 0;
+
         ConvolutionLayerType get_layer_type() {return layer_type;}
         std::size_t get_in_channels() {return in_channels;}
         std::size_t get_in_data_side() {return in_data_side;}
