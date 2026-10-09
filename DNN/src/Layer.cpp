@@ -121,12 +121,14 @@ double Layer::d_activate(int i, int j, Activation_Type activation_type) {
 }
 
 void Layer::weighted_sums(const std::vector<double>& inputs) {
-    for (size_t i = 0; i < static_cast<size_t>(n_neurons); i++) {
+    #pragma omp parallel for schedule(static)
+    for (std::size_t i = 0; i < static_cast<std::size_t>(n_neurons); ++i) {
         double sum = biases[i];
         
-        for (size_t j = 0; j < static_cast<size_t>(n_inputs); j++) {
+        #pragma omp simd reduction(+:sum)
+        for (std::size_t j = 0; j < static_cast<std::size_t>(n_inputs); ++j)
             sum += weights[i * n_inputs + j] * inputs[j];
-        }
+
         zs[i] = sum;
     }
 }

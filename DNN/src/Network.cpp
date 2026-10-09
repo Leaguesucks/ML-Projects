@@ -168,12 +168,16 @@ void Network::back_propagation(const std::vector<double>& Y) {
         }
 
         // Calculate the gradient for each neuron in this layer
-        for (size_t i = 0; i < static_cast<size_t>(n_neurons); i++)
-            for (size_t j = 0; j < static_cast<size_t>(n_weights); j++)
-                if (accumulate_gradients)
-                    grads[i * n_weights + j] += deltas[i] * prev_as[j];
-                else
-                    grads[i * n_weights + j] = deltas[i] * prev_as[j];
+        #pragma omp parallel for schedule(static)
+        for (std::size_t n = 0; n < static_cast<std::size_t>(n_neurons * n_weights); ++n) {
+            std::size_t i = n / n_weights;
+            std::size_t j = n % n_weights;
+
+            if (accumulate_gradients)
+                grads[n] += deltas[i] * prev_as[j];
+            else
+                grads[n] = deltas[i] * prev_as[j];
+        }                
     }
 }
 

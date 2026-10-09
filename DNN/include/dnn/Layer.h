@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vector>
+#include <thread>
+#include <cstddef>
+#include <omp.h>
 
 namespace dnn {
 
@@ -47,7 +50,7 @@ class Layer {
          * @brief Create a layer from one weight vector per neuron.
          * @param weights_layer Weight vectors, all with the same nonzero length.
          * @param activation_type Activation applied after the weighted sums.
-         */
+         */ 
         Layer(const std::vector<std::vector<double>>& weights_layer, Activation_Type activation_type);
 
         /**

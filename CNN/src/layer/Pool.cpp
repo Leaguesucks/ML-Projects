@@ -13,7 +13,7 @@ window_side(window_side), pooling_type(pooling_type) {
     layer_type = cnn::POOL;
 }
 
-void PoolLayer::forward(const std::vector<double>& data) {
+const std::vector<double>& PoolLayer::forward(const std::vector<double>& data) {
     if (in_data_side * in_data_side * in_channels != data.size())
         throw std::invalid_argument("Mismatch data size");
 
@@ -21,6 +21,7 @@ void PoolLayer::forward(const std::vector<double>& data) {
     std::fill(out_data.begin(), out_data.end(), 0.0);
 
     pool();
+    return out_data;
 }
 
 void PoolLayer::pool() {
@@ -29,7 +30,7 @@ void PoolLayer::pool() {
     switch (pooling_type) {
         case cnn::MAX_POOLING:
             // Flatten for maximum concurrency
-            #pragma omp for schedule (static)
+            #pragma omp parallel for schedule(static)
             for (std::size_t out_pixel = 0; out_pixel < out_pixels; ++out_pixel) {
                 const std::size_t cur_out_mat = out_pixel / out_channels;
                 const std::size_t cur_out_row = cur_out_mat / out_data_side;
@@ -69,7 +70,7 @@ void PoolLayer::pool() {
 
         case cnn::AVERAGE_POOLING:
             // Flatten for maximum concurrency
-            #pragma omp for schedule (static)
+            #pragma omp parallel for schedule (static)
             for (std::size_t out_pixel = 0; out_pixel < out_pixels; ++out_pixel) {
                 const std::size_t cur_out_mat = out_pixel / out_channels;
                 const std::size_t cur_out_row = cur_out_mat / out_data_side;

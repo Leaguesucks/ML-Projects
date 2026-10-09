@@ -25,6 +25,7 @@ void train(std::vector<dnn::MNIST_Image>& training_data, const std::vector<dnn::
     std::cout << "Start training..." << "\n\n";
     double best_accuracy = 98.12; // The best accuracy so far
     double minimum_loss = 0.129846; // The minimum loss so far
+
     for (size_t epoch = 0; epoch < EPOCH_SIZE; epoch++) {
         std::shuffle(training_data.begin(), training_data.end(), rng);
 

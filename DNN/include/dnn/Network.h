@@ -4,6 +4,8 @@
 #include <string>
 #include <cstdint>
 #include <cstddef>
+#include <thread>
+#include <omp.h>
 
 #include <dnn/Layer.h>
 

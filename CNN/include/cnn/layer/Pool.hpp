@@ -19,7 +19,7 @@ class PoolLayer : cnn::OperationLayer {
             std::size_t window_side=2, cnn::PoolingType pooling_type=cnn::MAX_POOLING,
             std::size_t in_data_side);
 
-        void forward(const std::vector<double>& data) override;
+        const std::vector<double>& forward(const std::vector<double>& data) override;
 
         cnn::PoolingType get_pooling_type() {return pooling_type;}
         std::size_t get_window_side() {return window_side;}

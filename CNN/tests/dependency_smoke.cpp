@@ -38,7 +38,7 @@ public:
     }
 
     using cnn::Network2D::conv;
-    using cnn::Network2D::activate;
+    using cnn::Network2D::n_residue;
 };
 
 void require(bool condition, const char* message) {
@@ -76,7 +76,7 @@ void check_matrix_operations() {
                    "Strided convolution output changed");
 
     TestMatrix activated(3, {-1, 2, -3, 4, 5, -6, 7, -8, 9}, 2);
-    activated.activate(dnn::RELU);
+    activated.n_residue(dnn::RELU);
     require_values(activated.get_data(), {0, 2, 0, 4, 5, 0, 7, 0, 9},
                    "ReLU output changed");
 }

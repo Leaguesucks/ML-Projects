@@ -3,6 +3,7 @@
         {
             "name": "Linux",
             "compilerPath": "/usr/bin/g++",
+            "compilerArgs": ["-fopenmp"],
             "compileCommands": "${workspaceFolder}/build/compile_commands.json",
             "includePath": [
                 "${workspaceFolder}/CNN/include",
