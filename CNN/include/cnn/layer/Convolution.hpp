@@ -8,6 +8,7 @@
 
 #include <dnn/Layer.h>
 #include <cnn/layer/Layer.hpp>
+#include <cnn/layer/Pool.hpp>
 
 namespace cnn {
 /**
@@ -23,10 +24,8 @@ class ConvolutionLayer : public cnn::OperationLayer {
         std::vector<double> kernels; // side x side x num_filters x in_channels
         std::vector<double> biases; // out_data_side x out_data_side x out_channels biases
 
-        std::size_t n_residue; // The number of residue of this layer i.e., how many layers is this layer connected to
+        std::size_t n_residue; // The number of residue of this layer i.e., how many layers is this layer connected to e.g., thí layer -> n layers
         std::vector<double> residues; // out_data_side x out_data_side x out_channels x n_residue
-
-        std::size_t n_back_residue; // For back propagation i.e., how many layers does this layer connect to
         
         std::vector<double> activated_out_data;
         dnn::Activation_Type activation_type;
@@ -45,7 +44,7 @@ class ConvolutionLayer : public cnn::OperationLayer {
     public:
         ConvolutionLayer(std::size_t in_channels=1, std::size_t out_channels=1,
               std::size_t stride=1, std::size_t padding=0, 
-              std::size_t n_residue=0, std::size_t n_back_residue=0,
+              std::size_t n_residue=0,
               dnn::Activation_Type activation_type=dnn::RELU,
               std::size_t in_data_side, 
               const std::vector<double>& kernels, const std::vector<double>& biases);
@@ -59,13 +58,10 @@ class ConvolutionLayer : public cnn::OperationLayer {
          */
         const std::vector<double>& forward(const std::vector<double>& data, const std::vector<double>& residues);
 
-        void backward(cnn::Layer& next_layer, std::vector<cnn::Layer*>& residue_layers) override;
+        void backward(std::vector<cnn::Layer*>& next_layers) override;
 
         void set_n_residue(std::size_t n_residue) {this->n_residue = n_residue;}
         std::size_t get_n_residue() {return n_residue;}
-
-        void set_n_back_residue(std::size_t n_back_residue) {this->n_back_residue = n_back_residue;}
-        std::size_t get_n_back_residue() {return n_back_residue;}
 
         std::size_t get_num_filter() {return num_filters;}
         std::size_t get_kernel_side() {return kernel_side;}

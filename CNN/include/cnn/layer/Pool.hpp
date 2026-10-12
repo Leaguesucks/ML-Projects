@@ -8,7 +8,7 @@
 #include <cnn/layer/Layer.hpp>
 
 namespace cnn {
-class PoolLayer : cnn::OperationLayer {
+class PoolLayer : public cnn::OperationLayer {
     private:
         cnn::PoolingType pooling_type;
         std::size_t window_side;

@@ -56,11 +56,10 @@ class Layer {
 
         /**
          * @brief Perform back-propagation
-         * @param next_layer The exact next layer.
-         * @param residue_layers The next layers that has this layer as residue.
+         * @param next_layers The exact next layer(s), including the residue layers if any
          * @note The reason why we do not return anything is because back propagation returns lots of different fields.
          */
-        virtual void backward(Layer& next_layer, std::vector<Layer*>& residue_layers) = 0;
+        virtual void backward(std::vector<Layer*>& next_layers) = 0;
 
         ConvolutionLayerType get_layer_type() {return layer_type;}
         std::size_t get_in_channels() {return in_channels;}

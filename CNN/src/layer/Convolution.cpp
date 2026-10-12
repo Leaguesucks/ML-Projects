@@ -3,13 +3,13 @@
 namespace cnn {
 ConvolutionLayer::ConvolutionLayer(std::size_t in_channels=1, std::size_t out_channels=1,
               std::size_t stride=1, std::size_t padding=0, 
-              std::size_t n_residue=0, std::size_t n_back_residue=0,
+              std::size_t n_residue=0,
               dnn::Activation_Type activation_type=dnn::RELU,
               std::size_t in_data_side,
               const std::vector<double>& kernels, const std::vector<double>& biases)
 : cnn::OperationLayer(in_channels, out_channels, 
     stride, padding, in_data_side, (in_data_side - kernel_side + 2 * padding) / stride + 1),
-  num_filters(out_channels), n_residue(n_residue), n_back_residue(n_back_residue),
+  num_filters(out_channels), n_residue(n_residue),
   activation_type(activation_type),
   kernel_side(kernel_side), kernels(kernels), biases(biases) {
     if (num_filters <= 0)
@@ -110,25 +110,29 @@ const std::vector<double>& ConvolutionLayer::forward(const std::vector<double>& 
     return forward(data);
 }
 
-void ConvolutionLayer::backward(cnn::Layer& next_layer, std::vector<cnn::Layer*>& residue_layers) {
-    if (n_back_residue != residue_layers.size())
-        throw std::invalid_argument("Mismatch residue layers size");
+void ConvolutionLayer::backward(std::vector<cnn::Layer*>& next_layers) {
+    if (next_layers.empty()) // Dense layer -> Any layer will be calculated outside
+        throw std::invalid_argument("Next layers cannot be empty");
 
     kernel_gradients.assign(kernel_side * kernel_side * num_filters * in_channels, 0.0);
     bias_gradients.assign(out_data_side * out_data_side * out_channels, 0.0);
     deltas.assign(out_data_side * out_data_side * out_channels, 0.0);
 
     // Calculate deltas for this layer
-    for (std::size_t next = 0; next < n_back_residue; ++next) {
-        switch (residue_layers[next]->get_layer_type()) {
-            case cnn::CONV:
-                ConvolutionLayer* next_layer = static_cast<ConvolutionLayer*>(residue_layers[next]);
-                const std::size_t nK = next_layer->get_kernel_side();
+    for (std::size_t next = 0; next < next_layers.size(); ++next) {
+        switch (next_layers[next]->get_layer_type()) {
+            case cnn::CONV: {
+                ConvolutionLayer* next_layer = static_cast<ConvolutionLayer*>(next_layers[next]);
+                const auto& next_deltas = next_layer->get_deltas();
+                const auto& next_kernels = next_layer->get_kernels();
+
                 const std::size_t nS = next_layer->get_kernel_side();
                 const std::size_t nP = next_layer->get_padding();
                 const std::size_t nG = next_layer->get_num_filter();
                 const std::size_t nO = next_layer->get_out_data_side();
 
+                // Calculate deltas[f,r,s]
+                #pragma omp parallel for schedule(static)
                 for (std::size_t A = 0; A < out_data_side * out_data_side * out_channels; ++A) {
                     std::size_t f = A % out_channels;
                     std::size_t x = (A / out_channels) / out_data_side;
@@ -138,12 +142,37 @@ void ConvolutionLayer::backward(cnn::Layer& next_layer, std::vector<cnn::Layer*>
                         std::size_t g = each_next_delta % nP;
                         std::size_t u = (each_next_delta / nP) / nO;
                         std::size_t v = (each_next_delta / nP) % nO;
+                        std::size_t i = x + nP - u * nS;
+                        std::size_t j = y + nP - v * nS;
 
-                        
+                        deltas[A] +=  next_deltas[each_next_delta] * next_kernels[((i * nS + j) * nG + g) * out_channels + f];                     
+                    }
+
+                    switch (activation_type) {
+                        case dnn::RELU:
+                            deltas[A] *= (out_data[A] <= 0) ? 0 : 1;
+                            break;
+
+                        default:
+                            throw std::runtime_error("Unsupported activation function");
                     }
                 }
 
                 break;
+            }
+
+            case cnn::POOL: {
+                cnn::PoolLayer* next_layer = static_cast<cnn::PoolLayer*>(next_layers[next]);
+                
+                switch (next_layer->get_pooling_type()) {
+                    case cnn::MAX_POOLING:
+                        for (std::size_t A = 0; A < out_data_side * out_data_side * out_channels; ++A) {
+                            std::size_t f = A % out_channels;
+                            std::size_t x = (A / out_channels) / out_data_side;
+                            std::size_t y = (A / out_channels) % out_data_side;
+                        }
+                }
+            }
         }
     }
 }
