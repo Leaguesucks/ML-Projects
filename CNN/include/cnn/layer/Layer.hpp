@@ -27,6 +27,11 @@ enum ConvolutionLayerType {
 class Layer {
     protected:
         ConvolutionLayerType layer_type;
+        
+        Layer* next_layer = nullptr; // The right next layer of this layer. Null if this is the last layer
+        std::vector<Layer*> from_residues; // The residue layers that connect to this layer i.e., res layers -> this layer
+
+        bool is_first_layer = false; // True if this is the first layer. Used to save some calculation effort in back propagation.
 
         std::size_t in_channels, out_channels;
         std::size_t in_data_side, out_data_side;
@@ -35,6 +40,7 @@ class Layer {
 
         // For back propagation
         std::vector<double> deltas; // dL/dz
+        std::vector<double> prev_dldas; // dL/da from the previous layer
 
     public:
         /**
@@ -56,10 +62,14 @@ class Layer {
 
         /**
          * @brief Perform back-propagation
-         * @param next_layers The exact next layer(s), including the residue layers if any
          * @note The reason why we do not return anything is because back propagation returns lots of different fields.
          */
-        virtual void backward(std::vector<Layer*>& next_layers) = 0;
+        virtual void backward() = 0;
+
+        /**
+         * @return The final output data (e.g., after activation) of a layer
+         */
+        virtual const std::vector<double>& get_final_out_data() = 0;
 
         ConvolutionLayerType get_layer_type() {return layer_type;}
         std::size_t get_in_channels() {return in_channels;}
@@ -71,6 +81,21 @@ class Layer {
         const std::vector<double>& get_out_data() {return out_data;}
 
         std::vector<double>& get_deltas() {return deltas;}
+        std::vector<double>& get_prev_dldas() {return prev_dldas;}
+
+        void set_is_first_layer(bool is_first_layer) {this->is_first_layer = is_first_layer;}
+        bool get_is_first_layer() {return is_first_layer;} 
+
+        void set_next_layer(Layer* next_layer) {this->next_layer = next_layer;}
+        const Layer* get_next_layer() {return next_layer;}
+
+        std::vector<Layer*>& get_from_residues() {return from_residues;}
+
+    protected:
+        /**
+         * @brief Calculate the dL/da from the previous layer i.e., dL/dInput of this layer
+         */
+        virtual void calculate_prev_dldas() = 0;
 };
 
 /**

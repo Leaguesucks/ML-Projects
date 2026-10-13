@@ -20,9 +20,15 @@ class PoolLayer : public cnn::OperationLayer {
             std::size_t in_data_side);
 
         const std::vector<double>& forward(const std::vector<double>& data) override;
+        void backward() override;
+
+        const std::vector<double>& get_final_out_data() override {return out_data;}
 
         cnn::PoolingType get_pooling_type() {return pooling_type;}
         std::size_t get_window_side() {return window_side;}
+
+    protected:
+        void calculate_prev_dldas() override;
 
     private:
         /**
