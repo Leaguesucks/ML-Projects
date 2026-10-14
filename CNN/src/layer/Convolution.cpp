@@ -20,6 +20,10 @@ ConvolutionLayer::ConvolutionLayer(std::size_t in_channels=1, std::size_t out_ch
     activated_out_data.assign(out_data_side * out_data_side * out_channels, 0.0);
     pre_activated_out_data.assign(out_data_side * out_data_side * out_channels, 0.0);
 
+    kernel_gradients.assign(kernel_side * kernel_side * num_filters * in_channels, 0.0);
+    bias_gradients.assign(out_channels, 0.0);
+    deltas.assign(out_data_side * out_data_side * out_channels, 0.0);
+
     layer_type = cnn::CONV;
 }
 
@@ -28,9 +32,9 @@ const std::vector<double>& ConvolutionLayer::forward(const std::vector<double>& 
         throw std::invalid_argument("Mismatch data size");
 
     // Pre-cleanup to prepare for back propagation
-    kernel_gradients.assign(kernel_side * kernel_side * num_filters * in_channels, 0.0);
-    bias_gradients.assign(out_channels, 0.0);
-    deltas.assign(out_data_side * out_data_side * out_channels, 0.0);
+    std::fill(kernel_gradients.begin(), kernel_gradients.end(), 0.0);
+    std::fill(bias_gradients.begin(), bias_gradients.end(), 0.0);
+    std::fill(deltas.begin(), deltas.end(), 0.0);
 
     in_data = data;
     std::fill(out_data.begin(), out_data.end(), 0.0);
@@ -128,37 +132,7 @@ void ConvolutionLayer::backward() {
     }
 
     // Propagate the complete delta to the residue sources
-    for (cnn::Layer* source : from_residues) {
-        auto& source_deltas = source->get_deltas();
-        
-        if (source_deltas.size() != out_data_side * out_data_side * out_channels)
-            throw std::runtime_error("Source deltas size mistmatch");
-
-        if (source->get_layer_type() == cnn::POOL) {
-
-            #pragma omp parallel for schedule(static)
-            for (std::size_t d = 0; d < out_data_side * out_data_side * out_channels; ++d)
-                source_deltas[d] += deltas[d];
-
-            continue;
-        }
-
-        ConvolutionLayer* source_layer = static_cast<ConvolutionLayer*>(source);
-        const auto& source_pre = source_layer->get_pre_activated_out_data();
-
-        switch (source_layer->get_activation_type()) {
-            case dnn::RELU:
-
-                #pragma omp parallel for schedule(static)
-                for (std::size_t d = 0; d < out_data_side * out_data_side * out_channels; ++d)
-                    source_deltas[d] += (source_pre[d] > 0.0) ? deltas[d] : 0.0;
-                break;
-
-            default:
-                throw std::runtime_error("Unsupported activation function in residue layer");
-        }
-
-    }
+    backward_residue_deltas();
 
     calculate_prev_dldas();
     calculate_gradients();
@@ -169,7 +143,7 @@ void ConvolutionLayer::calculate_prev_dldas() {
     if (is_first_layer) // Save calculation effort
         return;
 
-    prev_dldas.assign(in_data_side * in_data_side * in_channels, 0.0);
+    std::fill(prev_dldas.begin(), prev_dldas.end(), 0.0);
     
     const auto S = static_cast<std::ptrdiff_t>(stride);
     const auto P = static_cast<std::ptrdiff_t>(padding);
@@ -239,8 +213,7 @@ void ConvolutionLayer::calculate_gradients() {
 
                 kernel_gradients[W] += deltas[(r * out_data_side + s) * out_channels + f]
                 * in_data[((r * S + i - P) * in_data_side + (s * S + j - P)) * in_channels + c];
-            }
-                
+            }             
     }
 }
 

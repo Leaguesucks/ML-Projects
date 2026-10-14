@@ -4,8 +4,11 @@
 #include <cstddef>
 #include <vector>
 #include <string>
+#include <omp.h>
 
 #include <cnn/utils/String.hpp>
+#include <cnn/layer/Convolution.hpp>
+#include <cnn/layer/Pool.hpp>
 
 namespace cnn {
 enum PoolingType {
@@ -39,7 +42,7 @@ class Layer {
         std::vector<double> out_data; // out_data_side x out_data_side x out_channels. The output produced by this layer ONLY (no residue)
 
         // For back propagation
-        std::vector<double> deltas; // dL/dz
+        std::vector<double> deltas; // dL/dz.
         std::vector<double> prev_dldas; // dL/da from the previous layer
 
     public:
@@ -96,6 +99,11 @@ class Layer {
          * @brief Calculate the dL/da from the previous layer i.e., dL/dInput of this layer
          */
         virtual void calculate_prev_dldas() = 0;
+
+        /**
+         * @brief Propagate the complete deltas to the residue sources
+         */
+        void backward_residue_deltas();
 };
 
 /**

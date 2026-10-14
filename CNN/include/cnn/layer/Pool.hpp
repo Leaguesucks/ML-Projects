@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <stdexcept>
 #include <vector>
+#include <unordered_map>
+#include <algorithm>
 #include <limits>
 
 #include <cnn/layer/Layer.hpp>
@@ -12,6 +14,12 @@ class PoolLayer : public cnn::OperationLayer {
     private:
         cnn::PoolingType pooling_type;
         std::size_t window_side;
+
+        // Output index -> max input index
+        std::vector<std::size_t> max_indices; 
+
+        // Input index -> pooling output indices whose averaging windows contain this input
+        std::unordered_map<std::size_t, std::vector<std::size_t>> contributors;
 
     public:
         PoolLayer(std::size_t in_out_channels=1,

@@ -26,6 +26,7 @@ void LayerGraph::add_edges(const std::vector<std::string>& from, const std::vect
         if (edges.count(from[i]) && !edges[from[i]].empty()) {
             if (std::count(edges[from[i]].begin(), edges[from[i]].end(), from[i]))
                 throw std::invalid_argument("A node is not allowed to connect to itself");
+            if (std::count(edges[from[i]].begin(), edges[from[i]].end(), from[i]))
         }
     }
 }
